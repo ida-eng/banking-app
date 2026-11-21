@@ -16,7 +16,7 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         User.objects.filter(username="demo").delete()
-        user = User.objects.create_user("demo", "demo@example.com", "demo-password-123", first_name="Demo", last_name="User")
+        user = User.objects.create_user("demo", "emily.carter@example.com", "demo-password-123", first_name="Emily", last_name="Carter")
         months = 5
         opened = timezone.now() - timedelta(days=30 * months + 1)
         current = services.open_account(user, "Everyday", Account.Kind.CURRENT)
