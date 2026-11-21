@@ -101,13 +101,13 @@ class ViewTests(TestCase):
     def test_transfer_form_and_saved_recipient(self):
         self.client.force_login(self.user)
         response = self.client.post(reverse("transfer"), {
-            "source": self.acc.pk, "beneficiary_name": "Erion", "to_iban": "AL35 2021 1109 0000 0000 0123 4567",
+            "source": self.acc.pk, "beneficiary_name": "Olivia", "to_iban": "AL35 2021 1109 0000 0000 0123 4567",
             "amount": "12.30", "reference": "Books", "category": "shopping", "save_beneficiary": "on",
         })
         self.assertRedirects(response, reverse("account", args=[self.acc.pk]))
         self.acc.refresh_from_db()
         self.assertEqual(self.acc.balance, Decimal("487.70"))
-        self.assertTrue(Beneficiary.objects.filter(user=self.user, name="Erion").exists())
+        self.assertTrue(Beneficiary.objects.filter(user=self.user, name="Olivia").exists())
 
     def test_transfer_form_shows_iban_error(self):
         self.client.force_login(self.user)
