@@ -1,0 +1,20 @@
+{% load banking_extras %}
+{% if items %}
+<ul class="txs">
+    {% for t in items %}
+    <li class="tx">
+        <span class="tx-ico {{ t.category }}" aria-hidden="true">{{ t.get_category_display|first }}</span>
+        <div class="tx-main">
+            <b>{{ t.description }}</b>
+            <small>{{ t.created_at|date:"j M, H:i" }} · {{ t.get_category_display }}{% if show_account %} · {{ t.account.name }}{% endif %}{% if t.reference %} · “{{ t.reference }}”{% endif %}</small>
+        </div>
+        <div class="tx-amt">
+            <b class="{{ t.kind }}">{% if t.kind == 'credit' %}+{% else %}−{% endif %}{{ t.amount|money }}</b>
+            {% if not show_account %}<small>{{ t.balance_after|money }}</small>{% endif %}
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="empty">No transactions yet.</p>
+{% endif %}

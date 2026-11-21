@@ -1,0 +1,88 @@
+{% extends "banking/base.html" %}
+{% load banking_extras %}
+{% block title %}Send money{% endblock %}
+{% block content %}
+<header class="top"><div><p class="eyebrow">SEPA &amp; instant transfers</p><h1>Send money</h1></div></header>
+
+<div class="two-col wide-left">
+    <form method="post" class="panel form" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="flash error" role="alert">{{ form.non_field_errors.0 }}</div>{% endif %}
+        {% for field in form %}
+            {% if field.name == "save_beneficiary" %}
+            <label class="check-row" id="saveRow">{{ field }} <span>{{ field.label }}</span></label>
+            {% else %}
+            <label class="ff {% if field.errors %}has-err{% endif %}" id="row-{{ field.name }}">
+                <span>{{ field.label }}</span>
+                {{ field }}
+                {% if field.name == "to_iban" %}<small class="hint" id="ibanHint">We check the IBAN as you type.</small>{% endif %}
+                {% for e in field.errors %}<em class="err">{{ e }}</em>{% endfor %}
+            </label>
+            {% endif %}
+        {% endfor %}
+        <button class="btn dark full" type="submit">Review &amp; send</button>
+        <p class="muted small">Transfers to another Arka IBAN arrive instantly. Others leave as SEPA payments. Limit €10,000 per transfer.</p>
+    </form>
+
+    <aside class="panel">
+        <h2>Your accounts</h2>
+        <ul class="mini-accts">
+            {% for a in accounts %}
+            <li><div><b>{{ a.name }}</b><code>{{ a.iban_display }}</code></div><b>{{ a.balance|money }}</b>
+                <button type="button" class="btn small" data-fill="{{ a.iban }}" data-name="{{ a.name }}">Move here</button></li>
+            {% endfor %}
+        </ul>
+        <h2 class="mt">Try these test IBANs</h2>
+        <ul class="hints">
+            <li><code>DE89 3704 0044 0532 0130 00</code> <span>valid (Germany)</span></li>
+            <li><code>AL35 2021 1109 0000 0000 0123 4567</code> <span>valid (Albania)</span></li>
+            <li><code>DE89 3704 0044 0532 0130 01</code> <span>wrong check digits</span></li>
+        </ul>
+    </aside>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+{
+  const LEN = { AL:28, AT:20, BE:16, CH:21, DE:22, ES:24, FR:27, GB:22, GR:27, HR:21, IT:27, ME:22, MK:19, NL:18, PT:25, RS:22, XK:20 };
+  const norm = (v) => v.replace(/[\s-]+/g, "").toUpperCase();
+  const mod97 = (s) => { let r = 0; for (const ch of s) { const v = parseInt(ch, 36).toString(); for (const d of v) r = (r * 10 + Number(d)) % 97; } return r; };
+  const iban = document.getElementById("id_to_iban");
+  const hint = document.getElementById("ibanHint");
+  const check = () => {
+    const v = norm(iban.value);
+    if (!v) { hint.textContent = "We check the IBAN as you type."; hint.className = "hint"; return; }
+    const cc = v.slice(0, 2), len = LEN[cc];
+    let msg = "", ok = false;
+    if (!/^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(v)) msg = "Starts with a country code and 2 digits, e.g. DE89…";
+    else if (len && v.length < len) msg = `${cc} IBAN: ${v.length}/${len} characters`;
+    else if (len && v.length > len) msg = `Too long for ${cc} (${len} characters)`;
+    else if (mod97(v.slice(4) + v.slice(0, 4)) !== 1) msg = "Check digits don't match. Look for a typo.";
+    else { ok = true; msg = "✓ Valid IBAN"; }
+    hint.textContent = msg;
+    hint.className = "hint " + (ok ? "ok" : "warn");
+  };
+  iban.addEventListener("input", check);
+  check();
+
+  const saved = document.getElementById("id_beneficiary");
+  const toggle = () => {
+    const usingSaved = !!saved.value;
+    ["row-beneficiary_name", "row-to_iban", "saveRow"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.hidden = usingSaved;
+    });
+  };
+  saved.addEventListener("change", toggle);
+  toggle();
+
+  document.querySelectorAll("[data-fill]").forEach((b) => b.addEventListener("click", () => {
+    saved.value = ""; toggle();
+    iban.value = b.dataset.fill.replace(/(.{4})/g, "$1 ").trim();
+    document.getElementById("id_beneficiary_name").value = b.dataset.name;
+    check();
+    document.getElementById("id_amount").focus();
+  }));
+}
+</script>
+{% endblock %}

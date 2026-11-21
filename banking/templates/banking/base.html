@@ -1,0 +1,48 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Arka{% endblock %} · Arka</title>
+    <meta name="description" content="Arka: a demo online-banking app built with Django by Aida Topalli.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'banking/style.css' %}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%231f1b2d'/><path d='M8 22 16 8l8 14' stroke='%23b9a6ff' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+</head>
+<body class="{% block bodyclass %}{% endblock %}">
+{% if user.is_authenticated %}
+<div class="shell">
+    <aside class="side">
+        <a class="brand" href="{% url 'dashboard' %}"><span class="mark" aria-hidden="true"></span>Arka</a>
+        {% with name=request.resolver_match.url_name %}
+        <nav class="menu" aria-label="Main">
+            <a href="{% url 'dashboard' %}" class="{% if name == 'dashboard' %}on{% endif %}"><i aria-hidden="true">◧</i>Overview</a>
+            <a href="{% url 'transfer' %}" class="{% if name == 'transfer' %}on{% endif %}"><i aria-hidden="true">⇄</i>Send money</a>
+            <a href="{% url 'beneficiaries' %}" class="{% if name == 'beneficiaries' %}on{% endif %}"><i aria-hidden="true">☺</i>Recipients</a>
+            <p class="menu-h">Accounts</p>
+            {% for a in user.accounts.all %}
+            <a href="{% url 'account' a.pk %}" class="acct {% if name == 'account' and account.pk == a.pk %}on{% endif %}"><i class="dot {{ a.kind }}" aria-hidden="true"></i><span>{{ a.name }}</span><em>{{ a.iban_masked }}</em></a>
+            {% endfor %}
+            <a href="/api/" class="api"><i aria-hidden="true">{}</i>REST API</a>
+        </nav>
+        {% endwith %}
+        <div class="me">
+            <span class="avatar" aria-hidden="true">{{ user.first_name|default:user.username|first|upper }}</span>
+            <div><b>{{ user.get_full_name|default:user.username }}</b><small>{{ user.email }}</small></div>
+            <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="icon" type="submit" aria-label="Log out" title="Log out">⏻</button></form>
+        </div>
+    </aside>
+    <main class="main">
+        {% for m in messages %}<div class="flash {{ m.tags }}" role="status">{{ m }}</div>{% endfor %}
+        {% block content %}{% endblock %}
+        <footer class="foot">Arka is a demo by <a href="https://ida-eng.github.io/portfolio/">Aida Topalli</a>. No real money moves. Built with Django &amp; Django REST Framework · <a href="https://github.com/ida-eng/banking-app">Source</a></footer>
+    </main>
+</div>
+{% else %}
+    {% block auth %}{% endblock %}
+{% endif %}
+{% block scripts %}{% endblock %}
+</body>
+</html>

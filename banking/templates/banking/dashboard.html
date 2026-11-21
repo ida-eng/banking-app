@@ -1,0 +1,87 @@
+{% extends "banking/base.html" %}
+{% load banking_extras %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+<header class="top">
+    <div>
+        <p class="eyebrow">{% now "l, j F" %}</p>
+        <h1>Hi, {{ user.first_name|default:user.username }}</h1>
+    </div>
+    <a class="btn dark" href="{% url 'transfer' %}">⇄ Send money</a>
+</header>
+
+<section class="hero-grid">
+    <div class="balance-card">
+        <p>Total balance</p>
+        <b class="big">{{ total|money }}</b>
+        <div class="io">
+            <span><i class="up">↓</i> In this month <b>{{ money_in|money }}</b></span>
+            <span><i class="down">↑</i> Out this month <b>{{ money_out|money }}</b></span>
+        </div>
+    </div>
+    {% for a in accounts %}
+    <a class="acct-card {{ a.kind }}" href="{% url 'account' a.pk %}">
+        <div class="acct-top"><span>{{ a.get_kind_display }}</span><span class="chip-ico" aria-hidden="true"></span></div>
+        <b>{{ a.balance|money }}</b>
+        <p>{{ a.name }}</p>
+        <code>{{ a.iban_display }}</code>
+    </a>
+    {% endfor %}
+</section>
+
+<section class="two-col">
+    <div class="panel">
+        <div class="panel-head"><h2>Money in and out</h2><span class="muted">Last 6 months</span></div>
+        <div class="chart-box"><canvas id="monthly" aria-label="Money in and out per month" role="img"></canvas></div>
+    </div>
+    <div class="panel">
+        <div class="panel-head"><h2>Spending by category</h2><span class="muted">Last 30 days</span></div>
+        {% if by_category %}
+        <div class="chart-box short"><canvas id="cats" aria-label="Spending by category" role="img"></canvas></div>
+        <ul class="legend" id="legend"></ul>
+        {% else %}<p class="empty">No spending in the last 30 days.</p>{% endif %}
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-head"><h2>Recent activity</h2>{% if accounts %}<a href="{% url 'account' accounts.0.pk %}" class="link">See all</a>{% endif %}</div>
+    {% include "banking/_tx_list.html" with items=recent show_account=True %}
+</section>
+
+{{ monthly|json_script:"monthly-data" }}
+{{ by_category|json_script:"cat-data" }}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+{
+  const font = { family: "Plus Jakarta Sans, system-ui, sans-serif", size: 13 };
+  if (window.Chart) { Chart.defaults.font = font; Chart.defaults.color = "#6a6580"; }
+  const monthly = JSON.parse(document.getElementById("monthly-data").textContent);
+  const cats = JSON.parse(document.getElementById("cat-data").textContent);
+  const eur = (v) => "€" + Number(v).toLocaleString("en-GB", { maximumFractionDigits: 0 });
+  if (window.Chart && monthly.length) {
+    new Chart(document.getElementById("monthly"), {
+      type: "bar",
+      data: { labels: monthly.map(m => m.month), datasets: [
+        { label: "In", data: monthly.map(m => m.in), backgroundColor: "#86d9b0", borderRadius: 8, maxBarThickness: 26 },
+        { label: "Out", data: monthly.map(m => m.out), backgroundColor: "#b9a6ff", borderRadius: 8, maxBarThickness: 26 },
+      ] },
+      options: { maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 12, boxHeight: 12, useBorderRadius: true, borderRadius: 4 } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${eur(c.raw)}` } } },
+        scales: { x: { grid: { display: false } }, y: { ticks: { callback: eur }, grid: { color: "#ebe7f5" }, border: { display: false } } } },
+    });
+  }
+  const palette = ["#b9a6ff", "#86d9b0", "#ffb08c", "#8fc1f5", "#f5cf55", "#f39ac0", "#9fd3c7", "#c9b8a6", "#d0c8ff", "#e0e0e0"];
+  if (window.Chart && cats.length) {
+    new Chart(document.getElementById("cats"), {
+      type: "doughnut",
+      data: { labels: cats.map(c => c.label), datasets: [{ data: cats.map(c => c.total), backgroundColor: palette, borderWidth: 0, spacing: 2 }] },
+      options: { maintainAspectRatio: false, cutout: "68%", plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.label}: ${eur(c.raw)}` } } } },
+    });
+    const sum = cats.reduce((s, c) => s + c.total, 0);
+    document.getElementById("legend").innerHTML = cats.map((c, i) =>
+      `<li><i style="background:${palette[i % palette.length]}"></i><span>${c.label}</span><b>€${c.total.toFixed(2)}</b><em>${Math.round(c.total / sum * 100)}%</em></li>`).join("");
+  }
+}
+</script>
+{% endblock %}

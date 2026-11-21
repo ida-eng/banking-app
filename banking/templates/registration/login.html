@@ -1,0 +1,31 @@
+{% extends "banking/base.html" %}
+{% block title %}Log in{% endblock %}
+{% block auth %}
+<div class="auth">
+    <section class="auth-art">
+        <a class="brand light" href="{% url 'login' %}"><span class="mark" aria-hidden="true"></span>Arka</a>
+        <div class="cards" aria-hidden="true">
+            <div class="fake-card c1"><span>Everyday</span><b>€2,418.60</b><code>AL07 9997 •••• 2403</code></div>
+            <div class="fake-card c2"><span>Savings</span><b>€5,650.00</b><code>AL52 9991 •••• 8810</code></div>
+        </div>
+        <h2>Banking that keeps up with you.</h2>
+        <p>Accounts, SEPA transfers with live IBAN checks, spending insights and downloadable statements.</p>
+    </section>
+    <section class="auth-form">
+        <h1>Welcome back</h1>
+        <p class="muted">Log in, or explore with the demo account. No sign-up needed.</p>
+        <form method="post" action="{% url 'demo' %}">{% csrf_token %}<button class="btn demo full" type="submit">▶ Try the demo account</button></form>
+        <div class="or"><span>or log in</span></div>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="flash error" role="alert">Wrong username or password.</div>{% endif %}
+            <label class="ff"><span>Username</span>{{ form.username }}</label>
+            <label class="ff"><span>Password</span>{{ form.password }}</label>
+            <input type="hidden" name="next" value="{{ next }}">
+            <button class="btn dark full" type="submit">Log in</button>
+        </form>
+        <p class="switch">New here? <a href="{% url 'signup' %}">Open an account</a></p>
+        <p class="tiny muted">A portfolio project by <a href="https://ida-eng.github.io/portfolio/">Aida Topalli</a>. Demo only: no real money.</p>
+    </section>
+</div>
+{% endblock %}

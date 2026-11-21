@@ -1,0 +1,26 @@
+{% extends "banking/base.html" %}
+{% block title %}Open an account{% endblock %}
+{% block auth %}
+<div class="auth">
+    <section class="auth-art">
+        <a class="brand light" href="{% url 'login' %}"><span class="mark" aria-hidden="true"></span>Arka</a>
+        <h2>Open two accounts in a minute.</h2>
+        <p>You get an Everyday and a Savings account with real-format Albanian IBANs and €3,500 of demo money to try transfers with.</p>
+    </section>
+    <section class="auth-form">
+        <h1>Open an account</h1>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="two">
+                <label class="ff {% if form.first_name.errors %}has-err{% endif %}"><span>First name</span>{{ form.first_name }}{% for e in form.first_name.errors %}<em class="err">{{ e }}</em>{% endfor %}</label>
+                <label class="ff {% if form.last_name.errors %}has-err{% endif %}"><span>Last name</span>{{ form.last_name }}{% for e in form.last_name.errors %}<em class="err">{{ e }}</em>{% endfor %}</label>
+            </div>
+            {% for field in form %}{% if field.name not in "first_name last_name" %}
+            <label class="ff {% if field.errors %}has-err{% endif %}"><span>{{ field.label }}</span>{{ field }}{% for e in field.errors %}<em class="err">{{ e }}</em>{% endfor %}</label>
+            {% endif %}{% endfor %}
+            <button class="btn dark full" type="submit">Create my accounts</button>
+        </form>
+        <p class="switch">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+    </section>
+</div>
+{% endblock %}

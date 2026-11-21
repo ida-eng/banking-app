@@ -1,0 +1,56 @@
+{% extends "banking/base.html" %}
+{% load banking_extras %}
+{% block title %}{{ account.name }}{% endblock %}
+{% block content %}
+<header class="top">
+    <div>
+        <p class="eyebrow">{{ account.get_kind_display }}</p>
+        <h1>{{ account.name }}</h1>
+    </div>
+    <div class="actions">
+        <a class="btn" href="{% url 'statement' account.pk %}?{{ querystring }}">↓ Statement (CSV)</a>
+        <a class="btn dark" href="{% url 'transfer' %}?from={{ account.pk }}">⇄ Send money</a>
+    </div>
+</header>
+
+<section class="acct-hero {{ account.kind }}">
+    <div><p>Available balance</p><b class="big">{{ account.balance|money }}</b></div>
+    <div class="iban-box">
+        <p>IBAN</p>
+        <code id="iban">{{ account.iban_display }}</code>
+        <button type="button" class="btn small" id="copyIban" data-iban="{{ account.iban }}">Copy</button>
+    </div>
+</section>
+
+<section class="panel">
+    <form class="filters" method="get">
+        <label class="f grow"><span>Search</span>{{ form.q }}</label>
+        <label class="f"><span>Type</span>{{ form.kind }}</label>
+        <label class="f"><span>Category</span>{{ form.category }}</label>
+        <label class="f"><span>From</span>{{ form.date_from }}</label>
+        <label class="f"><span>To</span>{{ form.date_to }}</label>
+        <div class="f-btns"><button class="btn dark small" type="submit">Filter</button>{% if querystring %}<a class="btn small" href="{% url 'account' account.pk %}">Clear</a>{% endif %}</div>
+    </form>
+    <p class="muted count">{{ count }} transaction{{ count|pluralize }}</p>
+    {% include "banking/_tx_list.html" with items=page.object_list show_account=False %}
+    {% if page.has_other_pages %}
+    <nav class="pager" aria-label="Pages">
+        {% if page.has_previous %}<a class="btn small" href="?{{ querystring }}{% if querystring %}&{% endif %}page={{ page.previous_page_number }}">← Newer</a>{% endif %}
+        <span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+        {% if page.has_next %}<a class="btn small" href="?{{ querystring }}{% if querystring %}&{% endif %}page={{ page.next_page_number }}">Older →</a>{% endif %}
+    </nav>
+    {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+{
+  const b = document.getElementById("copyIban");
+  b.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(b.dataset.iban); b.textContent = "Copied ✓"; }
+    catch { b.textContent = "Select & copy"; }
+    setTimeout(() => (b.textContent = "Copy"), 1800);
+  });
+}
+</script>
+{% endblock %}

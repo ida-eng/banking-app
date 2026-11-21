@@ -1,0 +1,28 @@
+{% extends "banking/base.html" %}
+{% block title %}Recipients{% endblock %}
+{% block content %}
+<header class="top"><div><p class="eyebrow">Saved payees</p><h1>Recipients</h1></div></header>
+<div class="two-col wide-left">
+    <section class="panel">
+        {% if items %}
+        <ul class="people">
+            {% for b in items %}
+            <li>
+                <span class="avatar soft" aria-hidden="true">{{ b.name|first|upper }}</span>
+                <div><b>{{ b.name }}</b><code>{{ b.iban_display }}</code></div>
+                <form method="post" action="{% url 'beneficiary_delete' b.pk %}">{% csrf_token %}<button class="btn small" type="submit" aria-label="Remove {{ b.name }}">Remove</button></form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}<p class="empty">No saved recipients yet. Add one, or tick “Save this recipient” when you send money.</p>{% endif %}
+    </section>
+    <form method="post" class="panel form" novalidate>
+        {% csrf_token %}
+        <h2>Add a recipient</h2>
+        {% for field in form %}
+        <label class="ff {% if field.errors %}has-err{% endif %}"><span>{{ field.label }}</span>{{ field }}{% for e in field.errors %}<em class="err">{{ e }}</em>{% endfor %}</label>
+        {% endfor %}
+        <button class="btn dark full" type="submit">Save recipient</button>
+    </form>
+</div>
+{% endblock %}
