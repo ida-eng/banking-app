@@ -2,7 +2,7 @@
 
 A small online-banking app built with **Django 5** and **Django REST Framework**: accounts with real-format IBANs, SEPA and instant transfers, spending insights, statements and a REST API.
 
-**Live demo:** _added after deploy_ · click **“Try the demo account”** on the login page.
+**Live demo:** https://arka-bank.onrender.com · click **“Try the demo account”** on the login page.
 
 > Portfolio project. The bank is fictional and no real money moves.
 

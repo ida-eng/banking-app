@@ -68,7 +68,7 @@
         { label: "Out", data: monthly.map(m => m.out), backgroundColor: "#b9a6ff", borderRadius: 8, maxBarThickness: 26 },
       ] },
       options: { maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 12, boxHeight: 12, useBorderRadius: true, borderRadius: 4 } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${eur(c.raw)}` } } },
-        scales: { x: { grid: { display: false } }, y: { ticks: { callback: eur }, grid: { color: "#ebe7f5" }, border: { display: false } } } },
+        scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { callback: eur }, grid: { color: "#ebe7f5" }, border: { display: false } } } },
     });
   }
   const palette = ["#b9a6ff", "#86d9b0", "#ffb08c", "#8fc1f5", "#f5cf55", "#f39ac0", "#9fd3c7", "#c9b8a6", "#d0c8ff", "#e0e0e0"];
