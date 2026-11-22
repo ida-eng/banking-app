@@ -1,5 +1,7 @@
 # Arka: online banking demo (Django)
 
+[![CI](https://github.com/ida-eng/banking-app/actions/workflows/ci.yml/badge.svg)](https://github.com/ida-eng/banking-app/actions/workflows/ci.yml)
+
 A small online-banking app built with **Django 5** and **Django REST Framework**: accounts with real-format IBANs, SEPA and instant transfers, spending insights, statements and a REST API.
 
 **Live demo:** https://arka-bank.onrender.com · click **“Try the demo account”** on the login page.
@@ -24,7 +26,7 @@ A small online-banking app built with **Django 5** and **Django REST Framework**
 
 ## Tech
 
-Python 3.12 · Django 5.2 · Django REST Framework · SQLite (or Postgres via `DATABASE_URL`) · WhiteNoise · Gunicorn · Chart.js · deployed on Render
+Python 3.12 · Django 5.2 · Django REST Framework · SQLite (or Postgres via `DATABASE_URL`) · WhiteNoise · Gunicorn · Chart.js · Docker · GitHub Actions · deployed on Render
 
 ## Project layout
 
@@ -49,6 +51,24 @@ python manage.py seed_demo        # creates the demo user
 python manage.py runserver
 python manage.py test             # run the tests
 ```
+
+## Run with Docker
+
+```bash
+docker build -t arka-bank .
+docker run -p 8000:8000 arka-bank
+```
+
+Then open http://localhost:8000 and log in with `demo` / `demo-password-123`. The container runs migrations, seeds the demo account and serves the app with Gunicorn.
+
+## CI/CD
+
+Every push and pull request runs a [GitHub Actions pipeline](.github/workflows/ci.yml):
+
+1. **Tests:** Django system checks, a check for missing migrations and the full test suite
+2. **Docker:** builds the image, starts the container and checks that the login page responds
+
+Render deploys the app from `main` (see Deploy below).
 
 ## API examples
 
